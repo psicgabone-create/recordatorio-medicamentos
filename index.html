@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Recordatorio de Medicamentos</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+body{
+    background: linear-gradient(135deg,#E3F2FD,#BBDEFB);
+    min-height:100vh;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.card{
+    border-radius:20px;
+    border:none;
+    background:white;
+}
+
+.titulo{
+    color:#0277BD;
+    font-weight:bold;
+    text-transform:uppercase;
+    letter-spacing:2px;
+}
+
+.medicamento-img{
+    width:70px;
+    height:70px;
+    object-fit:cover;
+    border-radius:50%;
+    border:3px solid #4FC3F7;
+    box-shadow:0 0 10px rgba(0,0,0,.2);
+}
+
+#alertaMedicamento{
+    display:none;
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    z-index:9999;
+    width:90%;
+    max-width:450px;
+}
+
+.alerta-img{
+    width:120px;
+    height:120px;
+    object-fit:cover;
+    border-radius:50%;
+    border:4px solid #dc3545;
+}
+
+footer{
+    color:#01579B;
+    font-weight:bold;
+}
+
+.form-label{
+    color:#0277BD;
+    font-weight:600;
+}
+
+.form-control{
+    border-radius:12px;
+    border:2px solid #B3E5FC;
+}
+
+.form-control:focus{
+    border-color:#29B6F6;
+    box-shadow:0 0 8px rgba(41,182,246,.5);
+}
+
+.btn-success{
+    background:#00ACC1;
+    border:none;
+    border-radius:12px;
+    font-weight:bold;
+}
+
+.btn-success:hover{
+    background:#00838F;
+}
+
+.btn-danger{
+    border-radius:12px;
+}
+
+.card-header{
+    font-size:1.2rem;
+    font-weight:bold;
+}
+
+h4{
+    color:#0277BD;
+    font-weight:bold;
+}
+</style>
+
+</head>
+<body>
+
+<div class="container py-5">
+
+    <div class="card shadow-lg p-4">
+
+        <h1 class="text-center titulo mb-4">
+            💊 Recordatorio de Medicamentos
+        </h1>
+
+        <div class="row">
+
+            <div class="col-md-4 mb-3">
+                <label class="form-label">
+                    Nombre del medicamento
+                </label>
+
+                <input
+                    type="text"
+                    id="medicamento"
+                    class="form-control"
+                    placeholder="Ej. Paracetamol">
+            </div>
+
+            <div class="col-md-3 mb-3">
+                <label class="form-label">
+                    Dosis
+                </label>
+
+                <input
+                    type="text"
+                    id="dosis"
+                    class="form-control"
+                    placeholder="500 mg">
+            </div>
+
+            <div class="col-md-2 mb-3">
+                <label class="form-label">
+                    Hora
+                </label>
+
+                <input
+                    type="time"
+                    id="hora"
+                    class="form-control">
+            </div>
+
+            <div class="col-md-3 mb-3">
+                <label class="form-label">
+                    Imagen
+                </label>
+
+                <input
+                    type="file"
+                    id="imagenMedicamento"
+                    class="form-control"
+                    accept="image/*">
+            </div>
+
+        </div>
+
+        <button
+            class="btn btn-success w-100"
+            onclick="guardarMedicamento()">
+
+            Guardar Medicamento
+        </button>
+
+        <hr>
+
+        <h4 class="mb-3">
+            📋 Medicamentos Registrados
+        </h4>
+
+        <div id="listaMedicamentos"></div>
+
+    </div>
+
+</div>
+
+<!-- ALERTA -->
+
+<div id="alertaMedicamento">
+
+    <div class="card shadow-lg text-center border-danger">
+
+        <div class="card-header bg-danger text-white">
+            🚨 Hora de tomar tu medicamento
+        </div>
+
+        <div class="card-body">
+
+            <img
+                id="alertaImagen"
+                class="alerta-img mb-3"
+                src="">
+
+            <h3 id="alertaNombre"></h3>
+
+            <h5 id="alertaDosis"></h5>
+
+            <p id="alertaHora"></p>
+
+            <button
+                class="btn btn-success"
+                onclick="cerrarAlerta()">
+
+                ✓ Tomado
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<footer class="text-center mt-4">
+    Sistema de control de medicamentos
+</footer>
+
+<script>
+
+let medicamentos =
+JSON.parse(localStorage.getItem("medicamentos")) || [];
+
+function guardarMedicamento(){
+
+    let nombre =
+    document.getElementById("medicamento").value;
+
+    let dosis =
+    document.getElementById("dosis").value;
+
+    let hora =
+    document.getElementById("hora").value;
+
+    let archivo =
+    document.getElementById("imagenMedicamento").files[0];
+
+    if(nombre==="" || dosis==="" || hora===""){
+        alert("Completa todos los campos.");
+        return;
+    }
+
+    if(archivo){
+
+        let lector = new FileReader();
+
+        lector.onload = function(e){
+
+            medicamentos.push({
+                nombre:nombre,
+                dosis:dosis,
+                hora:hora,
+                imagen:e.target.result
+            });
+
+            guardarLocal();
+        };
+
+        lector.readAsDataURL(archivo);
+
+    }else{
+
+        medicamentos.push({
+            nombre:nombre,
+            dosis:dosis,
+            hora:hora,
+            imagen:"https://cdn-icons-png.flaticon.com/512/2966/2966486.png"
+        });
+
+        guardarLocal();
+    }
+}
+
+function guardarLocal(){
+
+    localStorage.setItem(
+        "medicamentos",
+        JSON.stringify(medicamentos)
+    );
+
+    mostrarMedicamentos();
+
+    document.getElementById("medicamento").value="";
+    document.getElementById("dosis").value="";
+    document.getElementById("hora").value="";
+    document.getElementById("imagenMedicamento").value="";
+}
+
+function mostrarMedicamentos(){
+
+    let contenedor =
+    document.getElementById("listaMedicamentos");
+
+    contenedor.innerHTML="";
+
+    medicamentos.forEach((med,index)=>{
+
+        contenedor.innerHTML += `
+        <div class="card mb-3">
+            <div class="card-body">
+
+                <div class="d-flex justify-content-between align-items-center">
+
+                    <div class="d-flex align-items-center">
+
+                        <img
+                            src="${med.imagen}"
+                            class="medicamento-img me-3">
+
+                        <div>
+
+                            <h5>${med.nombre}</h5>
+
+                            <p class="mb-1">
+                                💉 Dosis:
+                                ${med.dosis}
+                            </p>
+
+                            <p class="mb-0">
+                                ⏰ Hora:
+                                ${med.hora}
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    <button
+                        class="btn btn-danger"
+                        onclick="eliminarMedicamento(${index})">
+
+                        Eliminar
+                    </button>
+
+                </div>
+
+            </div>
+        </div>
+        `;
+    });
+}
+
+function eliminarMedicamento(index){
+
+    if(confirm("¿Deseas eliminar este medicamento?")){
+
+        medicamentos.splice(index,1);
+
+        localStorage.setItem(
+            "medicamentos",
+            JSON.stringify(medicamentos)
+        );
+
+        mostrarMedicamentos();
+    }
+}
+
+function verificarHora(){
+
+    let ahora = new Date();
+
+    let horaActual =
+        ahora.getHours().toString().padStart(2,'0')
+        + ":" +
+        ahora.getMinutes().toString().padStart(2,'0');
+
+    medicamentos.forEach(med=>{
+
+        if(med.hora === horaActual){
+
+            document.getElementById("alertaImagen").src =
+            med.imagen;
+
+            document.getElementById("alertaNombre")
+            .innerHTML = med.nombre;
+
+            document.getElementById("alertaDosis")
+            .innerHTML = "Dosis: " + med.dosis;
+
+            document.getElementById("alertaHora")
+            .innerHTML = "Hora: " + med.hora;
+
+            document.getElementById("alertaMedicamento")
+            .style.display = "block";
+
+            let audio = new Audio(
+            "https://www.soundjay.com/buttons/sounds/beep-01a.mp3"
+            );
+
+            audio.play();
+        }
+    });
+}
+
+function cerrarAlerta(){
+
+    document.getElementById("alertaMedicamento")
+    .style.display = "none";
+}
+
+mostrarMedicamentos();
+
+setInterval(verificarHora,1000);
+
+</script>
+
+</body>
+</html>
